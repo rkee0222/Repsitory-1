@@ -1,0 +1,14 @@
+# Runtime dependencies for VoicePitch
+# Pin to known-good, widely available versions. Adjust if needed.
+
+numpy>=1.24,<2.2
+scipy>=1.10
+soundfile>=0.12.1
+librosa>=0.10.1          # provides pyin (probabilistic YIN) and robust MP3/M4A loading
+sounddevice>=0.4.6       # low-latency microphone capture (PortAudio)
+PySide6>=6.6             # Qt GUI framework
+pyqtgraph>=0.13.3        # fast real-time plotting
+
+# Build / test (not required to run the app)
+pytest>=7.4
+pyinstaller>=6.3
