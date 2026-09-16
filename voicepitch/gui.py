@@ -32,7 +32,7 @@ LIVE_SR = 44100
 LIVE_BLOCK = 1024
 LIVE_FRAME = 2048
 LIVE_HOP = 512
-WINDOW_SECONDS = 10.0
+WINDOW_SECONDS = 5.0
 POLL_MS = 33  # ~30 fps UI updates
 
 pg.setConfigOptions(antialias=True, background="#101216", foreground="#d8dee9")
