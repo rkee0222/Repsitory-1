@@ -23,7 +23,7 @@ import pyqtgraph as pg
 from PySide6 import QtCore, QtWidgets
 
 from .audio import MicStream, load_audio_file
-from .notes import hz_to_midi
+from .notes import hz_to_midi, midi_to_note_name
 from .pitch import YinDetector, pyin_track
 from .plot import AutoRangeY, NoteAxis
 
@@ -150,6 +150,24 @@ class MainWindow(QtWidgets.QMainWindow):
             [], [], pen=None, symbol="o", symbolSize=3,
             symbolBrush=pg.mkBrush("#4cc2ff"), symbolPen=None,
         )
+
+        # Horizontal guide line marking the most recent pitch, drawn all the way
+        # to the (note-name) axis, with a floating label showing that note.
+        self.current_line = pg.InfiniteLine(
+            angle=0, movable=False,
+            pen=pg.mkPen("#ffb454", width=1, style=QtCore.Qt.DashLine),
+            label="",
+            labelOpts={"position": 0.04, "color": "#ffb454",
+                       "fill": (16, 18, 22, 200), "movable": False},
+        )
+        self.current_line.setVisible(False)
+        self.plot.addItem(self.current_line, ignoreBounds=True)
+
+        # A dot that highlights the newest sample at the right edge.
+        self.current_dot = pg.ScatterPlotItem(
+            size=9, brush=pg.mkBrush("#ffb454"), pen=pg.mkPen("#101216"))
+        self.plot.addItem(self.current_dot, ignoreBounds=True)
+
         root.addWidget(self.plot, stretch=1)
 
     def _show_live_controls(self, live: bool):
@@ -175,6 +193,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self._t.clear()
         self._m.clear()
         self.curve.setData([], [])
+        self.current_line.setVisible(False)
+        self.current_dot.setData([], [])
 
     # -------------------------------------------------------------- live
     def _start_live(self):
@@ -256,6 +276,17 @@ class MainWindow(QtWidgets.QMainWindow):
         self.plot.setXRange(-WINDOW_SECONDS, 0, padding=0)
         lo, hi = self._auto_y.update(ms[valid])
         self.plot.setYRange(lo, hi, padding=0)
+
+        # Guide line + label + dot at the most recent detected pitch.
+        if valid.any():
+            cur_midi = float(ms[valid][-1])
+            self.current_line.setPos(cur_midi)
+            self.current_line.label.setText(midi_to_note_name(cur_midi))
+            self.current_line.setVisible(True)
+            self.current_dot.setData([0.0], [cur_midi])
+        else:
+            self.current_line.setVisible(False)
+            self.current_dot.setData([], [])
 
     # -------------------------------------------------------------- file
     def _open_file(self):
